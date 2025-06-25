@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CodePlug Mind Map – SVG Path Prototype</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f3f3f3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      display: flex;
+      margin-top: 60px;
+      width: 90vw;
+      justify-content: center;
+      position: relative;
+    }
+    .column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+    }
+    .node {
+      position: relative;
+      background: #fff;
+      border: 2px solid #444;
+      border-radius: 8px;
+      padding: 10px 15px;
+      min-width: 180px;
+      text-align: center;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .anchor-left, .anchor-right {
+      position: absolute;
+      top: 50%;
+      width: 0;
+      height: 0;
+    }
+    .anchor-left { left: 0; transform: translate(-50%, -50%); }
+    .anchor-right { right: 0; transform: translate(50%, -50%); }
+    .center-radio {
+      height: 240px;
+      display: block;
+      margin: auto;
+      border: 3px solid #333;
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+      z-index: 3;
+      position: relative;
+    }
+    .bottom-node {
+      margin-top: 20px;
+    }
+    iframe {
+      margin: 30px 0;
+      width: 80vw;
+      height: 45vh;
+      border: none;
+      border-radius: 6px;
+    }
+    svg.connector {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <svg class="connector" id="lines"></svg>
+    <div class="column" id="left-column"></div>
+    <div class="column" style="justify-content: center;">
+      <img src="https://tse4.mm.bing.net/th?id=OIP.RFnRGwDqgPibhbVsrzhBjgHaHa&pid=Api"
+           class="center-radio" id="centerNode" onclick="jumpToTime(0)" />
+    </div>
+    <div class="column" id="right-column"></div>
+  </div>
+  <div id="bottom-center" class="node bottom-node"><span class="anchor-top"></span>Outro</div>
+  <iframe id="ytplayer" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+  <script>
+    const topics = [
+      ["Intro", 0], ["Opening codeplug", 43], ["Exporting", 68],
+      ["Excel", 113], ["Repeater Info", 133], ["TX freq", 231], ["RX freq", 318],
+      ["Color codes", 348], ["Time slots", 377], ["Power", 405],
+      ["Save", 449], ["Import", 460], ["Write", 487], ["Test", 509], ["Outro", 544]
+    ];
+
+    const centerImg = document.getElementById("centerNode");
+    const leftCol = document.getElementById("left-column");
+    const rightCol = document.getElementById("right-column");
+    const svg = document.getElementById("lines");
+
+    function createNode(label, side) {
+      const node = document.createElement("div");
+      node.className = "node";
+      node.innerText = label;
+
+      const anchor = document.createElement("span");
+      anchor.className = side === "left" ? "anchor-right" : "anchor-left";
+      node.appendChild(anchor);
+
+      return node;
+    }
+
+    function drawPaths() {
+      svg.innerHTML = "";
+      const centerBox = centerImg.getBoundingClientRect();
+      const cx = centerBox.left + centerBox.width / 2 + window.scrollX;
+      const cy = centerBox.top + centerBox.height / 2 + window.scrollY;
+
+      document.querySelectorAll(".anchor-left, .anchor-right").forEach(anchor => {
+        const rect = anchor.getBoundingClientRect();
+        const ax = rect.left + window.scrollX;
+        const ay = rect.top + window.scrollY;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", `M${cx},${cy} L${ax},${ay}`);
+        path.setAttribute("stroke", "#888");
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("fill", "none");
+        svg.appendChild(path);
+      });
+    }
+
+    function init() {
+      const leftTopics = topics.slice(0, 7);
+      const rightTopics = topics.slice(7, 14);
+
+      leftTopics.forEach(([label]) => leftCol.appendChild(createNode(label, "left")));
+      rightTopics.forEach(([label]) => rightCol.appendChild(createNode(label, "right")));
+
+      setTimeout(drawPaths, 300);
+      window.addEventListener("resize", drawPaths);
+    }
+
+    function jumpToTime(t) {
+      const iframe = document.getElementById("ytplayer");
+      iframe.contentWindow.postMessage(JSON.stringify({
+        event: "command", func: "seekTo", args: [t, true]
+      }), "*");
+    }
+
+    init();
+  </script>
+</body>
+</html>
