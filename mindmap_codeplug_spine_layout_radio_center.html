@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CodePlug Training – Spine Layout with Radio Center</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      display: flex;
+      margin-top: 20px;
+      width: 90vw;
+      justify-content: center;
+      position: relative;
+    }
+    .column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+    .node {
+      background: #fff;
+      border: 2px solid #444;
+      border-radius: 8px;
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      min-width: 180px;
+      text-align: center;
+      z-index: 1;
+    }
+    .node:hover {
+      background: #eef;
+      transform: scale(1.03);
+    }
+    .node.active {
+      background: #cce5ff;
+      border-color: #0066cc;
+    }
+    .center-radio {
+      height: 120px;
+      cursor: pointer;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      margin: 20px 0;
+      transition: transform 0.2s;
+    }
+    .center-radio:hover {
+      transform: scale(1.05);
+    }
+    .bottom-node {
+      margin-top: 25px;
+    }
+    iframe {
+      margin: 30px 0;
+      width: 80vw;
+      height: 45vh;
+      border: none;
+      border-radius: 6px;
+    }
+    svg.connector {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <svg class="connector" id="lines"></svg>
+    <div class="column" id="left-column"></div>
+    <div class="column">
+      <img src="https://tse4.mm.bing.net/th?id=OIP.RFnRGwDqgPibhbVsrzhBjgHaHa&pid=Api" class="center-radio" id="centerNode" onclick="jumpToTime(0)" alt="Anytone 878UVII Plus" />
+    </div>
+    <div class="column" id="right-column"></div>
+  </div>
+  <div id="bottom-center" class="node bottom-node"></div>
+  <iframe id="ytplayer" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+  <script>
+    const videoId = "1SLC-Ek-wzE";
+    const topics = [
+      ["Intro", 0],
+      ["Opening the codeplug", 43],
+      ["Exporting the codeplug", 68],
+      ["Opening in Excel", 113],
+      ["Finding local repeater info", 133],
+      ["Changing transmit frequencies", 231],
+      ["Changing receive frequencies", 318],
+      ["Changing color codes", 348],
+      ["Changing time slots", 377],
+      ["Changing power output", 405],
+      ["Saving the codeplug", 449],
+      ["Importing to CPS", 460],
+      ["Writing to radio", 487],
+      ["Testing on repeater", 509],
+      ["Outro", 544]
+    ];
+
+    let currentIndex = -1;
+    let player;
+    let allNodes = [];
+
+    function jumpToTime(seconds) {
+      player.contentWindow.postMessage(JSON.stringify({
+        event: "command",
+        func: "seekTo",
+        args: [seconds, true]
+      }), "*");
+    }
+
+    function highlightNode(index) {
+      allNodes.forEach((node, i) => {
+        node.classList.toggle("active", i === index);
+      });
+    }
+
+    function populateLayout() {
+      const left = document.getElementById("left-column");
+      const right = document.getElementById("right-column");
+      const bottom = document.getElementById("bottom-center");
+
+      const leftTopics = topics.slice(0, 7);
+      const rightTopics = topics.slice(7, 14);
+      const bottomTopic = topics[14];
+
+      function createNode(label, time, idx) {
+        const div = document.createElement("div");
+        div.className = "node";
+        div.textContent = label;
+        div.onclick = () => {
+          jumpToTime(time);
+          highlightNode(idx);
+          currentIndex = idx;
+        };
+        allNodes.push(div);
+        return div;
+      }
+
+      leftTopics.forEach((t, i) => left.appendChild(createNode(t[0], t[1], i)));
+      rightTopics.forEach((t, i) => right.appendChild(createNode(t[0], t[1], i + 7)));
+      const bottomNode = createNode(bottomTopic[0], bottomTopic[1], 14);
+      bottom.appendChild(bottomNode);
+      allNodes.push(bottomNode);
+
+      requestAnimationFrame(drawLines);
+    }
+
+    function drawLines() {
+      const svg = document.getElementById("lines");
+      svg.innerHTML = "";
+      const center = document.getElementById("centerNode").getBoundingClientRect();
+
+      allNodes.forEach(node => {
+        const box = node.getBoundingClientRect();
+        const x1 = center.left + center.width / 2 + window.scrollX;
+        const y1 = center.top + center.height / 2 + window.scrollY;
+        const x2 = box.left + box.width / 2 + window.scrollX;
+        const y2 = box.top + box.height / 2 + window.scrollY;
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.setAttribute("stroke", "#aaa");
+        line.setAttribute("stroke-width", "2");
+        svg.appendChild(line);
+      });
+    }
+
+    function checkTimeUpdate(currentTime) {
+      for (let i = topics.length - 1; i >= 0; i--) {
+        if (currentTime >= topics[i][1]) {
+          if (currentIndex !== i) {
+            highlightNode(i);
+            currentIndex = i;
+          }
+          break;
+        }
+      }
+    }
+
+    function setupPlayerListener() {
+      window.addEventListener("message", (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data && data.info && typeof data.info.currentTime === "number") {
+            checkTimeUpdate(data.info.currentTime);
+          }
+        } catch {}
+      });
+    }
+
+    function loadYouTubeVideo() {
+      const iframe = document.getElementById("ytplayer");
+      iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&rel=0&modestbranding=1&origin=${location.origin}`;
+      player = iframe;
+    }
+
+    window.onload = () => {
+      populateLayout();
+      loadYouTubeVideo();
+      setupPlayerListener();
+      window.addEventListener("resize", drawLines);
+    };
+  </script>
+</body>
+</html>
