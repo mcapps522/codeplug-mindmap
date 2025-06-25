@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CodePlug Training Map</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; overflow: hidden; }
+    #mindmap {
+      position: relative;
+      width: 100vw;
+      height: 60vh;
+      background: #f0f0f0;
+    }
+    #videoContainer {
+      width: 100%;
+      height: 40vh;
+    }
+    .concept {
+      position: absolute;
+      padding: 10px 15px;
+      background: #fff;
+      border: 2px solid #666;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      text-align: center;
+      min-width: 120px;
+      max-width: 160px;
+      box-sizing: border-box;
+      word-wrap: break-word;
+    }
+    .concept:hover { background: #eef; }
+    #center {
+      position: absolute;
+      background: #3498db;
+      color: white;
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      text-align: center;
+    }
+    #videoLabel {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 1000;
+    }
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="videoLabel">Video ID: 1SLC-Ek-wzE</div>
+  <div id="mindmap">
+    <svg id="connectorLayer" width="100%" height="100%"></svg>
+    <div id="center">CodePlug Installation</div>
+  </div>
+  <div id="videoContainer">
+    <iframe id="ytplayer" width="100%" height="100%" frameborder="0"
+      allow="autoplay; encrypted-media" allowfullscreen>
+    </iframe>
+  </div>
+  <script>
+    const videoId = "1SLC-Ek-wzE";
+    const topics = [
+      ["Intro", 0],
+      ["Opening the codeplug", 43],
+      ["Exporting the codeplug", 68],
+      ["Opening in Excel", 113],
+      ["Finding local repeater info", 133],
+      ["Changing transmit frequencies", 231],
+      ["Changing receive frequencies", 318],
+      ["Changing color codes", 348],
+      ["Changing time slots", 377],
+      ["Changing power output", 405],
+      ["Saving the codeplug", 449],
+      ["Importing to CPS", 460],
+      ["Writing to radio", 487],
+      ["Testing on repeater", 509],
+      ["Outro", 544]
+    ];
+
+    function placeTopics() {
+      const r = 340; // wider spacing
+      const center = document.getElementById("center");
+      const mindmap = document.getElementById("mindmap");
+      const cx = mindmap.offsetWidth / 2;
+      const cy = mindmap.offsetHeight / 2;
+      const svg = document.getElementById("connectorLayer");
+
+      center.style.left = (cx - 50) + "px";
+      center.style.top = (cy - 50) + "px";
+
+      topics.forEach((t, i) => {
+        const angle = (2 * Math.PI * i) / topics.length;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        const div = document.createElement("div");
+        div.className = "concept";
+        div.innerText = t[0];
+
+        // Offset based on angle to reduce overlap
+        const offsetX = (Math.cos(angle) * 80) - 60;
+        const offsetY = (Math.sin(angle) * 40) - 20;
+
+        div.style.left = (x + offsetX) + "px";
+        div.style.top = (y + offsetY) + "px";
+        div.dataset.timestamp = t[1];
+        div.onclick = () => {
+          const ts = parseInt(div.dataset.timestamp || "0");
+          const player = document.getElementById("ytplayer");
+          player.src = `https://www.youtube.com/embed/${videoId}?start=${ts}&autoplay=1&rel=0&enablejsapi=1&nocache=${Date.now()}`;
+        };
+        mindmap.appendChild(div);
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", cx);
+        line.setAttribute("y1", cy);
+        line.setAttribute("x2", x);
+        line.setAttribute("y2", y);
+        line.setAttribute("stroke", "#aaa");
+        line.setAttribute("stroke-width", "2");
+        svg.appendChild(line);
+      });
+    }
+
+    function insertInitialVideo() {
+      const player = document.getElementById("ytplayer");
+      player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&nocache=${Date.now()}`;
+    }
+
+    window.onload = () => {
+      placeTopics();
+      insertInitialVideo();
+    };
+  </script>
+</body>
+</html>
