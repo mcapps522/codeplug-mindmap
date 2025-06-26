@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Codeplug Mind Map - Radial Responsive</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #map-container {
+            flex: 6;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #video-container {
+            flex: 4;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .node {
+            position: absolute;
+            border: 1px solid #000;
+            border-radius: 8px;
+            padding: 10px;
+            background: #fff;
+            text-align: center;
+            min-width: 120px;
+            resize: both;
+            overflow: auto;
+        }
+        .step-label {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: black;
+            background: transparent;
+            text-align: center;
+            width: 100%;
+            top: 100%;
+            transform: translateY(5px);
+        }
+    </style>
+</head>
+<body>
+    <div id="map-container">
+        <svg id="map" width="1000" height="800">
+            <!-- Example center node -->
+            <foreignObject x="440" y="340" width="120" height="60">
+                <div class="node" contenteditable="true">Central Topic</div>
+                <div class="step-label">Step 1</div>
+            </foreignObject>
+            <!-- Example branch -->
+            <foreignObject x="140" y="100" width="120" height="60">
+                <div class="node" contenteditable="true" onclick="jumpTo(30)">Branch 1</div>
+                <div class="step-label">Step 2</div>
+            </foreignObject>
+            <!-- More branches would go here -->
+        </svg>
+    </div>
+    <div id="video-container">
+        <iframe id="ytplayer" src="https://www.youtube.com/embed/t7xrkVYAFhY?enablejsapi=1&autoplay=0" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        function jumpTo(seconds) {
+            const player = document.getElementById("ytplayer").contentWindow;
+            player.postMessage(JSON.stringify({
+                event: "command",
+                func: "seekTo",
+                args: [seconds, true]
+            }), "*");
+        }
+    </script>
+</body>
+</html>
