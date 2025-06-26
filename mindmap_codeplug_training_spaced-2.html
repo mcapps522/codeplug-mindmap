@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DMR Codeplug Mind Map</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+    #container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #map {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+    }
+    #video-container {
+      height: 240px;
+      flex-shrink: 0;
+    }
+    svg {
+      width: 3000px;
+      height: 2000px;
+    }
+    .topic {
+      cursor: pointer;
+    }
+    .step-label {
+      font-size: 14px;
+      fill: black;
+      text-anchor: middle;
+      dominant-baseline: hanging;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="map">
+      <svg id="mindmap"></svg>
+    </div>
+    <div id="video-container">
+      <iframe
+        id="video"
+        width="100%"
+        height="100%"
+        src="https://www.youtube.com/embed/t7xrkVYAFhY?autoplay=0"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </div>
+
+  <script>
+    const topics = [
+      { label: "Intro", time: 5 },
+      { label: "DMR Basics", time: 30 },
+      { label: "Talk Groups", time: 60 },
+      { label: "Time Slots", time: 90 },
+      { label: "Color Codes", time: 120 },
+      { label: "Zones", time: 150 },
+      { label: "Channels", time: 180 },
+      { label: "Scan Lists", time: 210 },
+      { label: "Roaming", time: 240 },
+      { label: "Codeplug Examples", time: 270 },
+      { label: "Tips & Tricks", time: 300 },
+      { label: "Common Mistakes", time: 330 },
+      { label: "Firmware", time: 360 },
+      { label: "Import/Export", time: 390 },
+      { label: "Final Review", time: 420 }
+    ];
+
+    const centerX = 1500;
+    const centerY = 1000;
+    const radius = 700;
+
+    const svg = document.getElementById("mindmap");
+
+    topics.forEach((topic, i) => {
+      const angle = (2 * Math.PI * i) / topics.length;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", centerX);
+      line.setAttribute("y1", centerY);
+      line.setAttribute("x2", x);
+      line.setAttribute("y2", y);
+      line.setAttribute("stroke", "#ccc");
+      svg.appendChild(line);
+
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", x - 80);
+      rect.setAttribute("y", y - 30);
+      rect.setAttribute("width", 160);
+      rect.setAttribute("height", 60);
+      rect.setAttribute("rx", 10);
+      rect.setAttribute("ry", 10);
+      rect.setAttribute("fill", "#f2f2f2");
+      rect.setAttribute("stroke", "#333");
+      rect.classList.add("topic");
+      rect.addEventListener("click", () => jumpTo(topic.time));
+      svg.appendChild(rect);
+
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", x);
+      text.setAttribute("y", y);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "middle");
+      text.setAttribute("fill", "black");
+      text.textContent = topic.label;
+      text.classList.add("topic");
+      text.addEventListener("click", () => jumpTo(topic.time));
+      svg.appendChild(text);
+
+      const stepText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      stepText.setAttribute("x", x);
+      stepText.setAttribute("y", y + 35);
+      stepText.setAttribute("class", "step-label");
+      stepText.textContent = `Step ${i + 1}`;
+      svg.appendChild(stepText);
+    });
+
+    function jumpTo(seconds) {
+      const iframe = document.getElementById("video");
+      const base = "https://www.youtube.com/embed/t7xrkVYAFhY?autoplay=1&start=";
+      iframe.src = base + seconds;
+    }
+  </script>
+</body>
+</html>
