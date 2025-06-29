@@ -1,99 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>CodePlug Training Map</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DMR Codeplug Mind Map</title>
   <style>
-    body { margin: 0; font-family: sans-serif; overflow: hidden; }
-    #mindmap { position: relative; width: 100vw; height: 60vh; background: #f5f5f5; display: flex; justify-content: center; align-items: center; }
-    #videoContainer { width: 100%; height: 40vh; }
-    .concept {
-      position: absolute;
-      padding: 10px 15px;
-      background: #fff;
-      border: 2px solid #666;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s;
-      text-align: center;
-      min-width: 100px;
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      font-family: Arial, sans-serif;
     }
-    .concept:hover { background: #eef; }
-    #center {
-      position: absolute;
-      background: #3498db;
-      color: white;
-      border-radius: 50%;
-      width: 140px;
-      height: 140px;
+    #container {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      text-align: center;
+      flex-direction: column;
+      height: 100vh;
     }
-    #videoLabel {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 12px;
+    #map {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    #video-container {
+      height: 240px;
+      flex-shrink: 0;
+    }
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+    .topic {
+      cursor: pointer;
+    }
+    .step-label {
+      font-size: 14px;
+      fill: black;
+      text-anchor: middle;
+      dominant-baseline: hanging;
     }
   </style>
 </head>
 <body>
-  <div id="videoLabel">Video ID: 1SLC-Ek-wzE</div>
-  <div id="mindmap">
-    <div id="center">CodePlug Installation</div>
+  <div id="container">
+    <div id="map">
+      <svg id="mindmap" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <div id="video-container">
+      <iframe
+        id="video"
+        width="100%"
+        height="100%"
+        src="https://www.youtube.com/embed/t7xrkVYAFhY?autoplay=0"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
   </div>
-  <div id="videoContainer"></div>
+
   <script>
-    const topics = [('Intro', 0), ('Opening the codeplug', 43), ('Exporting the codeplug', 68), ('Opening in Excel', 113), ('Finding local repeater info', 133), ('Changing transmit frequencies', 231), ('Changing receive frequencies', 318), ('Changing color codes', 348), ('Changing time slots', 377), ('Changing power output', 405), ('Saving the codeplug', 449), ('Importing to CPS', 460), ('Writing to radio', 487), ('Testing on repeater', 509), ('Outro', 544)];
-    const center = document.getElementById("center");
-    const mindmap = document.getElementById("mindmap");
+    const topics = [
+      { label: "Intro", time: 5 },
+      { label: "DMR Basics", time: 30 },
+      { label: "Talk Groups", time: 60 },
+      { label: "Time Slots", time: 90 },
+      { label: "Color Codes", time: 120 },
+      { label: "Zones", time: 150 },
+      { label: "Channels", time: 180 },
+      { label: "Scan Lists", time: 210 },
+      { label: "Roaming", time: 240 },
+      { label: "Codeplug Examples", time: 270 },
+      { label: "Tips & Tricks", time: 300 },
+      { label: "Common Mistakes", time: 330 },
+      { label: "Firmware", time: 360 },
+      { label: "Import/Export", time: 390 },
+      { label: "Final Review", time: 420 }
+    ];
 
-    function placeTopics() {
-      const r = 220;
-      const cx = window.innerWidth / 2;
-      const cy = document.getElementById("mindmap").offsetHeight / 2;
-      topics.forEach((t, i) => {
-        const angle = (2 * Math.PI * i) / topics.length;
-        const x = cx + r * Math.cos(angle) - 60;
-        const y = cy + r * Math.sin(angle) - 20;
-        const div = document.createElement("div");
-        div.className = "concept";
-        div.innerText = t[0];
-        div.style.left = x + "px";
-        div.style.top = y + "px";
-        div.dataset.timestamp = t[1];
-        div.onclick = () => {
-          const player = document.querySelector("iframe");
-          if (player) {
-            const newSrc = "https://www.youtube.com/embed/1SLC-Ek-wzE?start=" + t[1] + "&autoplay=1&rel=0&nocache=" + Date.now();
-            player.src = newSrc;
-          }
-        };
-        mindmap.appendChild(div);
-      });
-    }
+    const centerX = 600;
+    const centerY = 400;
+    const radius = 300;
 
-    function insertVideo() {
-      const container = document.getElementById("videoContainer");
-      const iframe = document.createElement("iframe");
-      iframe.width = "100%";
-      iframe.height = "100%";
-      iframe.allowFullscreen = true;
-      iframe.src = "https://www.youtube.com/embed/1SLC-Ek-wzE?autoplay=1&rel=0&nocache=" + Date.now();
-      container.appendChild(iframe);
-    }
+    const svg = document.getElementById("mindmap");
 
-    document.addEventListener("DOMContentLoaded", () => {
-      insertVideo();
-      placeTopics();
+    topics.forEach((topic, i) => {
+      const angle = (2 * Math.PI * i) / topics.length;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", centerX);
+      line.setAttribute("y1", centerY);
+      line.setAttribute("x2", x);
+      line.setAttribute("y2", y);
+      line.setAttribute("stroke", "#ccc");
+      svg.appendChild(line);
+
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", x - 60);
+      rect.setAttribute("y", y - 20);
+      rect.setAttribute("width", 120);
+      rect.setAttribute("height", 40);
+      rect.setAttribute("rx", 10);
+      rect.setAttribute("ry", 10);
+      rect.setAttribute("fill", "#f2f2f2");
+      rect.setAttribute("stroke", "#333");
+      rect.classList.add("topic");
+      rect.addEventListener("click", () => jumpTo(topic.time));
+      svg.appendChild(rect);
+
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", x);
+      text.setAttribute("y", y);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "middle");
+      text.setAttribute("fill", "black");
+      text.textContent = topic.label;
+      text.classList.add("topic");
+      text.addEventListener("click", () => jumpTo(topic.time));
+      svg.appendChild(text);
+
+      const stepText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      stepText.setAttribute("x", x);
+      stepText.setAttribute("y", y + 30);
+      stepText.setAttribute("class", "step-label");
+      stepText.textContent = `Step ${i + 1}`;
+      svg.appendChild(stepText);
     });
+
+    function jumpTo(seconds) {
+      const iframe = document.getElementById("video");
+      const base = "https://www.youtube.com/embed/t7xrkVYAFhY?autoplay=1&start=";
+      iframe.src = base + seconds;
+    }
   </script>
 </body>
 </html>
